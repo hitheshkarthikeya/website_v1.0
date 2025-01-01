@@ -1,7 +1,7 @@
 from django.db import models
 from accounts.models import Account
 from shop.models import Product, Variation
-
+from coupon.models import Coupon
 
 class Payment(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE)
@@ -42,6 +42,10 @@ class Order(models.Model):
     is_ordered = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
+    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    order_total = models.FloatField()
+    tax = models.FloatField()
 
     def full_name(self):
         return f'{self.first_name} {self.last_name}'

@@ -8,10 +8,10 @@
         <div class="row">
             <div class="col-xs-12">
                 <div class="pages-title-text text-center">
-                    <h2 style="color:#f4cca4">Chcekout</h2>
+                    <h2 style="color:#f4cca4">Checkout</h2>
                     <ul class="text-left">
-                        <li><a style="color:#d99879" href="\">Home </a></li>
-                        <li style="color:#d99879"><span> // </span>Chcekout</li>
+                        <li><a style="color:#d99879" href="/">Home </a></li>
+                        <li style="color:#d99879"><span> // </span>Checkout</li>
                     </ul>
                 </div>
             </div>
@@ -20,22 +20,46 @@
 </div>
 {% include "includes/alerts.html" %}
 <!-- pages-title-end -->
+
 <!-- Checkout content section start -->
-<section style="margin-bottom:50;background:#1c1427" class="pages checkout section-padding">
+<section style="margin-bottom:50px; background:#1c1427" class="pages checkout section-padding">
     <div class="container">
         <div class="row">
-        <form action="{% url 'orders:payment' %}" method="post">
-        {% csrf_token %}
-            <div class="col-sm-6">
-                <div style="border-radius:20px;" class="main-input single-cart-form padding60">
-                    <div class="log-title text-center">
-                        <h3><strong style="color:#d99879">Billing Address</strong></h3>
-                    </div>
-                    <div class="custom-input">
-                        
+            
+            <!-- Coupon Form Section -->
+            <div class="col-xs-12 col-sm-12">
+                <div class="coupon-section" style="margin-bottom:20px;">
+                    {% if applied_coupon %}
+                        <!-- Display Applied Coupon -->
+                        <div class="alert alert-success" style="background:#d4edda; color:#155724; border:1px solid #c3e6cb; padding:10px; border-radius:5px;">
+                            Coupon <strong>{{ applied_coupon.code }}</strong> applied! You saved ${{ discount_amount }}.
+                            <a href="{% url 'orders:remove_coupon' %}" class="btn btn-danger btn-sm" style="margin-left:10px;">Remove</a>
+                        </div>
+                    {% else %}
+                        <!-- Coupon Application Form -->
+                        <form method="POST" action="{% url 'orders:apply_coupon' %}" class="form-inline">
+                            {% csrf_token %}
+                            <div class="form-group" style="display:flex; align-items:center;">
+                                <input type="text" name="coupon_code" class="form-control" placeholder="Enter Coupon Code" required style="margin-right:10px; flex:1;">
+                                <button type="submit" class="btn btn-warning" style="background:#f4cca4; color:#1c1427; text-transform: capitalize; font-size:16px;"><b>Apply Coupon</b></button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Order and Billing Form -->
+            <form action="{% url 'orders:payment' %}" method="post" style="width:100%;">
+                {% csrf_token %}
+                <div class="col-sm-6">
+                    <div style="border-radius:20px;" class="main-input single-cart-form padding60">
+                        <div class="log-title text-center">
+                            <h3><strong style="color:#d99879">Billing Address</strong></h3>
+                        </div>
+                        <div class="custom-input">
                             <input type="text" name="first_name" placeholder="First Name" required />
                             <input type="text" name="last_name" placeholder="Last Name" required />
-                            <input type="text" name="email" placeholder="Email" required />
+                            <input type="email" name="email" placeholder="Email" required />
                             <input type="text" name="phone" placeholder="Phone Number" required />
                             <input type="text" name="city" placeholder="City" required />
                             <input type="text" name="country" placeholder="Country" required />
@@ -46,55 +70,60 @@
                             <div class="custom-mess">
                                 <textarea rows="2" placeholder="Order Notes" name="order_note"></textarea>
                             </div>
-                        
-                    </div>
-                </div><br>
-            </div>
-            <div class="col-xs-12 col-sm-6">
-                <div style="border-radius:10px;" class="padding60">
-                    <div class="log-title text-center">
-                        <h3><strong style="color:#d99879">Our order</strong></h3>
-                    </div>
-                    <div class="cart-form-text pay-details table-responsive">
-                        <table>
-                            <thead>
-                                <tr  >
-                                    <th style="color:#f4cca4;background:#1c1427;border-radius:10px 0 0 10px;">Product</th>
-                                    <td style="color:#f4cca4;background:#1c1427;border-radius:0 10px 10px 0;">Total</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for cart_item in cart_items %}
-                                <tr>
-                                    <th>{{cart_item.product.name}} x {{cart_item.quantity}}</th>
-                                    <td>${{cart_item.sub_total}}</td>
-                                </tr>
-                                {% endfor %}
-                                <tr>
-                                    <th>Shipping and Handing</th>
-                                    <td>${{handing}}</td>
-                                </tr>
-                                <tr>
-                                    <th>Vat</th>
-                                    <td>${{vat}}</td>
-                                </tr>
-                                <tr style="color:#d99879">
-                                    <th>Order total</th>
-                                    <td>${{order_total}}</td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                
-                            </tfoot>
+                        </div>
+                    </div><br>
+                </div>
+                <div class="col-xs-12 col-sm-6">
+                    <div style="border-radius:10px;" class="padding60">
+                        <div class="log-title text-center">
+                            <h3><strong style="color:#d99879">Your Order</strong></h3>
+                        </div>
+                        <div class="cart-form-text pay-details table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="color:#f4cca4;background:#1c1427;border-radius:10px 0 0 10px;">Product</th>
+                                        <td style="color:#f4cca4;background:#1c1427;border-radius:0 10px 10px 0;">Total</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cart_item in cart_items %}
+                                    <tr>
+                                        <th>{{ cart_item.product.name }} x {{ cart_item.quantity }}</th>
+                                        <td>${{ cart_item.sub_total }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    <tr>
+                                        <th>Shipping and Handling</th>
+                                        <td>${{ handing }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>VAT (2%)</th>
+                                        <td>${{ vat }}</td>
+                                    </tr>
+                                    {% if discount_amount %}
+                                    <tr>
+                                        <th>Discount</th>
+                                        <td>-${{ discount_amount }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr style="color:#d99879">
+                                        <th>Order Total</th>
+                                        <td>${{ order_total }}</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                </tfoot>
+                            </table>
                             
-                        </table>
-                        <div  style="width:100%" class="submit-text">
-                        <button href="#" class="btn btn-warning" style="background:#f4cca4;color:#1c1427; width:100% ; text-transform: capitalize;font-size:18px"><b>Place Order</b></button>
+                            <!-- Place Order Button -->
+                            <div class="submit-text" style="width:100%; margin-top:20px;">
+                                <button type="submit" class="btn btn-warning" style="background:#f4cca4; color:#1c1427; width:100%; text-transform: capitalize; font-size:18px;"><b>Place Order</b></button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </form>
+            </form>
         </div>
     </div>
 </section>
